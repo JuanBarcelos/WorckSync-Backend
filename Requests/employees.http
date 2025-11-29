@@ -1,0 +1,92 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin para obter token
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Criar funcionário (como ADMIN)
+# @name createEmployee1
+POST {{baseUrl}}/api/employees
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "sheetId": "EMP001",
+  "name": "João Silva Santos",
+  "position": "Desenvolvedor Senior",
+  "department": "Tecnologia"
+}
+
+### Criar funcionário com turno
+POST {{baseUrl}}/api/employees
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "sheetId": "17",
+  "name": "Jefferson Andrade",
+  "document": "636.136.490-98",
+  "position": "Lider de Logistica",
+  "department": "Logistica",
+  "shiftId": "818263c8-d3d6-423b-87b8-e7ebb9e942fa"
+}
+
+### Listar todos os funcionários
+GET {{baseUrl}}/api/employees
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar com paginação
+GET {{baseUrl}}/api/employees
+?page=1
+&limit=10
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Buscar funcionários
+GET {{baseUrl}}/api/employees
+?search=João
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Filtrar por departamento
+GET {{baseUrl}}/api/employees
+?department=Tecnologia
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Filtrar apenas ativos
+GET {{baseUrl}}/api/employees
+?isActive=true
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Obter funcionário por ID
+GET {{baseUrl}}/api/employees/aff7f034-5456-4b6d-9f98-91bdf0780900
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Atualizar dados do funcionário
+PUT {{baseUrl}}/api/employees/{{createEmployee1.response.body.employee.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "position": "Desenvolvedor Pleno",
+  "shiftId": "818263c8-d3d6-423b-87b8-e7ebb9e942fa"
+}
+
+### Demitir funcionário
+PUT {{baseUrl}}/api/employees/{{createEmployee1.response.body.employee.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "dismissalDate": "2024-12-31",
+  "isActive": false
+}
+
+### Excluir funcionário (apenas ADMIN)
+DELETE {{baseUrl}}/api/employees/276aa8df-8d6d-4015-8877-034f2a927b16
+Authorization: Bearer {{loginAdmin.response.body.token}}

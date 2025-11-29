@@ -1,0 +1,71 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Processar período completo
+POST {{baseUrl}}/api/processing/range
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31",
+  "generateOccurrences": true,
+  "updateExisting": true
+}
+
+### Processar período de um funcionário
+POST {{baseUrl}}/api/processing/range
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "employeeId": "uuid-do-funcionario",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31",
+  "generateOccurrences": true
+}
+
+### Processar dia específico
+POST {{baseUrl}}/api/processing/single-day
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "employeeId": "uuid-do-funcionario",
+  "date": "2024-01-15",
+  "generateOccurrences": true
+}
+
+### Reprocessar todos os registros de uma importação
+POST {{baseUrl}}/api/processing/import/6c8ffb0d-6eb6-400a-a99f-7f7a585b1c67/reprocess
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Obter status do período
+GET {{baseUrl}}/api/processing/status
+?startDate=2024-01-01
+&endDate=2024-01-31
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Analisar interpretação de registro
+POST {{baseUrl}}/api/processing/analyze
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "employeeId": "uuid-do-funcionario",
+  "date": "2024-01-15",
+  "testData": {
+    "clockIn1": "08:00",
+    "clockOut1": "13:00"
+  }
+}

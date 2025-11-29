@@ -1,0 +1,364 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  RH
+  VIEWER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(VIEWER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  imports     Import[]
+  reports     Report[]
+  systemLogs  SystemLog[]
+  sessions    Session[]
+  approvedOccurrences Occurrence[]
+
+  @@map("users")
+  ScheduledReport ScheduledReport[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model SystemLog {
+  id         String   @id @default(uuid())
+  action     String
+  module     String
+  details    String?
+  userId     String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([module])
+  @@index([createdAt])
+  @@map("system_logs")
+}
+
+// Placeholder models for future modules
+model Employee {
+  id          String   @id @default(uuid())
+  sheetId     String   @unique // ID da planilha de ponto
+  name        String
+  position    String   // Cargo
+  department  String   // Departamento
+  isActive    Boolean  @default(true)
+  shiftId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  shift       Shift?        @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  timeRecords TimeRecord[]
+  occurrences Occurrence[]
+
+  @@index([shiftId])
+  @@index([isActive])
+  @@map("employees")
+}
+
+model Shift {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  startTime       String   // HH:mm format
+  endTime         String   // HH:mm format
+  lunchStartTime  String   // HH:mm format
+  lunchEndTime    String   // HH:mm format
+  toleranceMinutes Int     @default(10)
+  overtimeAllowed Boolean  @default(true)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  employees      Employee[]
+  shiftExceptions ShiftException[]
+
+  @@index([isActive])
+  @@map("shifts")
+}
+
+model ShiftException {
+  id          String   @id @default(uuid())
+  shiftId     String
+  date        DateTime
+  type        String   // HOLIDAY, COMPENSATION, SPECIAL
+  description String
+  isWorkDay   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([shiftId])
+  @@index([date])
+  @@map("shift_exceptions")
+}
+
+enum OccurrenceType {
+  LATE_ARRIVAL          // Atraso
+  EARLY_DEPARTURE       // Saída antecipada
+  ABSENCE              // Falta
+  INCOMPLETE_RECORD    // Registro incompleto
+  OVERTIME            // Hora extra
+  HOLIDAY_WORK        // Trabalho em feriado
+  WEEKEND_WORK        // Trabalho em fim de semana
+  MISSING_CLOCK_IN    // Falta de entrada
+  MISSING_CLOCK_OUT   // Falta de saída
+  EXCESSIVE_LUNCH     // Almoço excedido
+}
+
+enum OccurrenceStatus {
+  PENDING      // Pendente de justificativa
+  JUSTIFIED    // Justificado
+  APPROVED     // Aprovado
+  REJECTED     // Rejeitado
+  CANCELLED    // Cancelado
+}
+
+model Occurrence {
+  id              String           @id @default(uuid())
+  employeeId      String
+  timeRecordId    String?
+  date            DateTime
+  type            OccurrenceType
+  status          OccurrenceStatus @default(PENDING)
+  minutes         Int              // Minutos da ocorrência
+  description     String?
+  justification   String?
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  employee        Employee         @relation(fields: [employeeId], references: [id])
+  timeRecord      TimeRecord?      @relation(fields: [timeRecordId], references: [id], onDelete: SetNull)
+  approver        User?            @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([date])
+  @@index([type])
+  @@index([status])
+  @@map("occurrences")
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIALLY_COMPLETED
+}
+
+model Import {
+  id            String       @id @default(uuid())
+  fileName      String
+  fileSize      Int
+  mimeType      String
+  status        ImportStatus @default(PENDING)
+  totalRecords  Int          @default(0)
+  processedRecords Int       @default(0)
+  failedRecords Int          @default(0)
+  errors        String?      // JSON array of errors
+  startDate     DateTime?    // Período inicial dos dados
+  endDate       DateTime?    // Período final dos dados
+  processedAt   DateTime?
+  completedAt   DateTime?
+  userId        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  user          User         @relation(fields: [userId], references: [id])
+  timeRecords   TimeRecord[]
+  importLogs    ImportLog[]
+
+  @@index([status])
+  @@index([userId])
+  @@map("imports")
+}
+
+model ImportLog {
+  id         String   @id @default(uuid())
+  importId   String
+  row        Int
+  status     String   // SUCCESS, ERROR, WARNING
+  message    String
+  data       String?  // JSON of row data
+  createdAt  DateTime @default(now())
+
+  // Relations
+  import Import @relation(fields: [importId], references: [id], onDelete: Cascade)
+
+  @@index([importId])
+  @@map("import_logs")
+}
+
+model TimeRecord {
+  id             String   @id @default(uuid())
+  employeeId     String
+  importId       String?
+  date           DateTime
+  dayOfWeek      Int      // 1-7 (Monday-Sunday)
+  
+  // Clock times (podem ser null se faltou)
+  clockIn1       String?  // Primeira entrada
+  clockOut1      String?  // Primeira saída
+  clockIn2       String?  // Segunda entrada (volta do almoço)
+  clockOut2      String?  // Segunda saída
+  clockIn3       String?  // Terceira entrada (hora extra)
+  clockOut3      String?  // Terceira saída
+  
+  // Calculated values
+  totalWorkedMinutes    Int      @default(0)
+  regularMinutes        Int      @default(0)
+  overtimeMinutes       Int      @default(0)
+  nightShiftMinutes     Int      @default(0)
+  lateMinutes           Int      @default(0)
+  earlyLeaveMinutes     Int      @default(0)
+  absentMinutes         Int      @default(0)
+  
+  // Flags
+  isHoliday      Boolean  @default(false)
+  isWeekend      Boolean  @default(false)
+  hasIssues      Boolean  @default(false)
+  isManualEntry  Boolean  @default(false)
+  
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  employee  Employee @relation(fields: [employeeId], references: [id])
+  import    Import?  @relation(fields: [importId], references: [id], onDelete: SetNull)
+  occurrences     Occurrence[]
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@index([importId])
+  @@map("time_records")
+}
+
+model Report {
+  id          String       @id @default(uuid())
+  name        String
+  type        ReportType
+  format      ReportFormat
+  status      ReportStatus @default(PENDING)
+  parameters  String       // JSON com parâmetros do relatório
+  fileUrl     String?      // URL do arquivo gerado
+  fileSize    Int?
+  startDate   DateTime
+  endDate     DateTime
+  userId      String
+  error       String?
+  processedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+enum ReportType {
+  MONTHLY_SUMMARY      // Resumo mensal
+  EMPLOYEE_DETAIL     // Detalhado por funcionário
+  DEPARTMENT_SUMMARY  // Resumo por departamento
+  PAYROLL            // Folha de pagamento
+  OCCURRENCES        // Relatório de ocorrências
+  OVERTIME           // Horas extras
+  ABSENCES           // Faltas e atrasos
+  CUSTOM             // Personalizado
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  CSV
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ReportTemplate {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  type        ReportType
+  description String?
+  parameters  String       // JSON com parâmetros padrão
+  layout      String       // JSON com configuração do layout
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("report_templates")
+  ScheduledReport ScheduledReport[]
+}
+
+model ScheduledReport {
+  id          String       @id @default(uuid())
+  name        String
+  templateId  String
+  schedule    String       // Cron expression
+  recipients  String       // JSON array de emails
+  parameters  String       // JSON com parâmetros
+  isActive    Boolean      @default(true)
+  lastRun     DateTime?
+  nextRun     DateTime?
+  userId      String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  template    ReportTemplate @relation(fields: [templateId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+
+  @@map("scheduled_reports")
+}

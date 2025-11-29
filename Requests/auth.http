@@ -1,0 +1,103 @@
+### ===================================
+### TIMESHEET API - REST CLIENT TESTS
+### ===================================
+
+# Variáveis globais
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+# Token - será preenchido após login
+@authToken = {{loginAdmin.response.body.token}}
+
+### ===================================
+### HEALTH CHECK
+### ===================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ===================================
+### AUTENTICAÇÃO - ROTAS PÚBLICAS
+### ===================================
+
+### Register - Criar usuário ADMIN
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123",
+  "name": "Administrador do Sistema",
+  "role": "ADMIN"
+}
+
+###
+
+### Register - Criar usuário RH
+# @name registerRH
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "rh@timesheet.com",
+  "password": "RH@123456",
+  "name": "Maria Silva - RH",
+  "role": "RH"
+}
+
+###
+
+### Register - Criar usuário VIEWER
+# @name registerViewer
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "viewer@timesheet.com",
+  "password": "Viewer@123",
+  "name": "João Consultor",
+  "role": "VIEWER"
+}
+
+###
+
+### ===================================
+### LOGIN / AUTENTICAÇÃO
+### ===================================
+
+### Login - Admin (Sucesso)
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### ===================================
+### ROTAS PROTEGIDAS (NECESSITAM TOKEN)
+### ===================================
+
+### Get Profile - Com token válido
+# Primeiro faça login para obter o token
+GET {{baseUrl}}/api/auth/profile
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### ===================================
+### ROTAS ADMIN ONLY
+### ===================================
+
+### Criar usuário (apenas ADMIN) - Sucesso
+# Faça login como admin primeiro
+POST {{baseUrl}}/api/auth/users
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "email": "novo.usuario@timesheet.com",
+  "password": "NovoUser@123",
+  "name": "Novo Usuário",
+  "role": "RH"
+}

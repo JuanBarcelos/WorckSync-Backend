@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Download template Excel
+GET {{baseUrl}}/api/imports/template
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Upload arquivo Excel
+# @name uploadFile
+POST {{baseUrl}}/api/imports/upload
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="presencasv2.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< ./presencasv2.xlsx
+------WebKitFormBoundary--
+
+### Processar COM CÁLCULO AUTOMÁTICO (agora é o padrão)
+POST {{baseUrl}}/api/imports/{{uploadFile.response.body.import.id}}/process
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Verificar se os cálculos foram aplicados
+GET {{baseUrl}}/api/imports/{{uploadFile.response.body.import.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Ver logs detalhados da importação
+GET {{baseUrl}}/api/imports/{{uploadFile.response.body.import.id}}/logs
+Authorization: Bearer {{loginAdmin.response.body.token}}

@@ -1,0 +1,95 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Gerar relatório mensal individual PDF
+# @name generateMonthlyPDF
+POST {{baseUrl}}/api/reports/monthly
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "type": "MONTHLY_SUMMARY",
+  "format": "PDF",
+  "month": 11,
+  "year": 2025,
+  "employeeId": "20f41525-0979-46d0-b9c7-f9fc2c184435"
+}
+
+### Gerar relatório mensal completo Excel
+# @name generatePayrollExcel
+POST {{baseUrl}}/api/reports/monthly
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "type": "MONTHLY_SUMMARY",
+  "format": "EXCEL",
+  "month": 11,
+  "year": 2025
+}
+
+### Gerar relatório de folha de pagamento em Excel
+POST {{baseUrl}}/api/reports/generate
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "type": "PAYROLL",
+  "format": "EXCEL",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31",
+  "includeDetails": true
+}
+
+### Gerar relatório por departamento
+POST {{baseUrl}}/api/reports/generate
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "type": "DEPARTMENT_SUMMARY",
+  "format": "PDF",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31",
+  "departmentIds": ["Tecnologia", "RH"],
+  "includeDetails": true
+}
+
+### Gerar relatório mensal de múltiplos funcionários
+POST {{baseUrl}}/api/reports/monthly
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "type": "MONTHLY_SUMMARY",
+  "format": "PDF",
+  "month": 9,
+  "year": 2025,
+  "employeeIds": ["uuid1", "uuid2", "uuid3"]
+}
+
+### Listar relatórios gerados
+GET {{baseUrl}}/api/reports
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Status do relatório
+GET {{baseUrl}}/api/reports/{{generateMonthlyPDF.response.body.reportId}}/status
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Download do relatório PDF
+GET {{baseUrl}}/api/reports/{{generateMonthlyPDF.response.body.reportId}}/download
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Download do relatório Excel
+GET {{baseUrl}}/api/reports/{{generatePayrollExcel.response.body.reportId}}/download
+Authorization: Bearer {{loginAdmin.response.body.token}}

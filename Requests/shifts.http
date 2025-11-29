@@ -1,0 +1,125 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Criar turno matutino
+# @name createShift1
+POST {{baseUrl}}/api/shifts
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Turno Garagista",
+  "code": "GT-02",
+  "startTime": "20:00",
+  "endTime": "08:00",
+  "lunchStartTime": "00:00",
+  "lunchEndTime": "01:00",
+  "workDays": [1, 3, 5, 7],
+  "toleranceMinutes": 15,
+  "overtimeAllowed": true,
+  "description": "Turno padrão de garagista noturno dia sim dia não"
+}
+
+### Criar turno vespertino
+# @name createShift2
+POST {{baseUrl}}/api/shifts
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Turno Vespertino",
+  "code": "VES01",
+  "startTime": "14:00",
+  "endTime": "22:00",
+  "lunchStartTime": "18:00",
+  "lunchEndTime": "19:00",
+  "workDays": [1, 2, 3, 4, 5],
+  "toleranceMinutes": 15,
+  "overtimeAllowed": true,
+  "description": "Turno vespertino"
+}
+
+### Criar turno noturno
+# @name createShift3
+POST {{baseUrl}}/api/shifts
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Turno Noturno",
+  "code": "NOT01",
+  "startTime": "15:00",
+  "endTime": "23:00",
+  "lunchStartTime": "19:00",
+  "lunchEndTime": "20:00",
+  "workDays": [1, 2, 3, 4, 5, 6],
+  "toleranceMinutes": 15,
+  "overtimeAllowed": true,
+  "description": "Turno noturno com adicional"
+}
+
+### Listar todos os turnos
+GET {{baseUrl}}/api/shifts
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar turnos ativos
+GET {{baseUrl}}/api/shifts
+?isActive=true
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Buscar turno
+GET {{baseUrl}}/api/shifts
+?search=matutino
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Obter turno por ID (com estatísticas)
+GET {{baseUrl}}/api/shifts/{{createShift1.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Atualizar horários do turno
+PUT {{baseUrl}}/api/shifts/{{createShift1.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "startTime": "07:30",
+  "endTime": "16:30",
+  "toleranceMinutes": 15
+}
+
+### Alterar dias de trabalho
+PUT {{baseUrl}}/api/shifts/{{createShift1.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "workDays": [1, 2, 3, 4, 5, 6],
+  "description": "Agora inclui sábados"
+}
+
+### Inativar turno
+PUT {{baseUrl}}/api/shifts/{{createShift1.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "isActive": false
+}
+
+### Excluir turno (sem funcionários)
+DELETE {{baseUrl}}/api/shifts/{{createShift3.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Erro: Tentar excluir turno com funcionários
+DELETE {{baseUrl}}/api/shifts/{{createShift1.response.body.shift.id}}
+Authorization: Bearer {{loginAdmin.response.body.token}}

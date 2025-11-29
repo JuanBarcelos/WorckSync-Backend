@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+@employeeId = aff7f034-5456-4b6d-9f98-91bdf0780900
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+###
+
+GET {{baseUrl}}/api/timerecords/{{employeeId}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+###
+PUT {{baseUrl}}/api/timerecords/update
+Content-Type: {{contentType}}
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+    "id": "494b0f35-de7e-4ccb-b7e1-2f9b766f6f9c",
+    "clockOut2": "23:00",
+    "notes": "Funcionário esquece de colocar o horário de saida que foi às 23:00"
+}

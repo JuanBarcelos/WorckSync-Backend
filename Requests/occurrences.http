@@ -1,0 +1,120 @@
+@baseUrl = http://localhost:3333
+@contentType = application/json
+
+### Login como Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@timesheet.com",
+  "password": "Admin@123"
+}
+
+### Listar todas ocorrências
+GET {{baseUrl}}/api/occurrences
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar ocorrências pendentes
+GET {{baseUrl}}/api/occurrences
+?status=PENDING
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar ocorrências por tipo
+GET {{baseUrl}}/api/occurrences
+?type=LATE_ARRIVAL
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar ocorrências por período
+GET {{baseUrl}}/api/occurrences
+?startDate=2024-01-01
+&endDate=2024-01-31
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar ocorrências de um funcionário
+GET {{baseUrl}}/api/occurrences
+?employeeId=276aa8df-8d6d-4015-8877-034f2a927b16
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Obter ocorrência específica
+# @name getOccurrence
+GET {{baseUrl}}/api/occurrences/uuid-ocorrencia
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Justificar ocorrência
+POST {{baseUrl}}/api/occurrences/uuid-ocorrencia/justify
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "justification": "Estava em consulta médica, segue atestado em anexo",
+  "attachments": ["url-do-atestado.pdf"]
+}
+
+### Aprovar ocorrência
+POST {{baseUrl}}/api/occurrences/uuid-ocorrencia/review
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "action": "APPROVE",
+  "comment": "Justificativa aceita com atestado médico"
+}
+
+### Rejeitar ocorrência
+POST {{baseUrl}}/api/occurrences/uuid-ocorrencia/review
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "action": "REJECT",
+  "comment": "Justificativa insuficiente, falta documentação"
+}
+
+### Aprovar múltiplas ocorrências
+POST {{baseUrl}}/api/occurrences/bulk/review
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: {{contentType}}
+
+{
+  "occurrenceIds": ["uuid1", "uuid2", "uuid3"],
+  "action": "APPROVE",
+  "comment": "Aprovação em lote - abono coletivo"
+}
+
+### Obter estatísticas gerais
+GET {{baseUrl}}/api/occurrences/stats/summary
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Estatísticas por período
+GET {{baseUrl}}/api/occurrences/stats/summary
+?startDate=2024-01-01
+&endDate=2024-01-31
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Estatísticas de um funcionário
+GET {{baseUrl}}/api/occurrences/stats/summary
+?employeeId=uuid-funcionario
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Listar ocorrências de um funcionário
+GET {{baseUrl}}/api/occurrences/employee/uuid-funcionario
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Ocorrências de funcionário com período
+GET {{baseUrl}}/api/occurrences/employee/uuid-funcionario
+?startDate=2024-01-01
+&endDate=2024-01-31
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Exportar ocorrências em CSV
+GET {{baseUrl}}/api/occurrences/export/csv
+?startDate=2024-01-01
+&endDate=2024-01-31
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Exportar com filtros
+GET {{baseUrl}}/api/occurrences/export/csv
+?status=PENDING
+&type=LATE_ARRIVAL
+Authorization: Bearer {{loginAdmin.response.body.token}}
