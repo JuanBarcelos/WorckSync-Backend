@@ -1,8 +1,6 @@
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
-import fastifyStatic from '@fastify/static';
-import path from 'path';
 import { ZodError } from 'zod';
 import { 
   serializerCompiler, 
@@ -42,10 +40,10 @@ app.register(jwt, {
   secret: env.JWT_SECRET,
 });
 
-app.register(fastifyStatic, {
-  root: path.join(process.cwd(), 'reports'),
-  prefix: '/reports/',
-});
+// app.register(fastifyStatic, {
+//   root: path.join(process.cwd(), 'reports'),
+//   prefix: '/reports/',
+// });
 
 // Handler de Erros Global
 app.setErrorHandler((error, request, reply) => {
