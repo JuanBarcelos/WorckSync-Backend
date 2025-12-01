@@ -18,16 +18,13 @@ Authorization: Bearer {{loginAdmin.response.body.token}}
 Content-Type: {{contentType}}
 
 {
-  "name": "Turno Garagista",
-  "code": "GT-02",
-  "startTime": "20:00",
-  "endTime": "08:00",
-  "lunchStartTime": "00:00",
-  "lunchEndTime": "01:00",
-  "workDays": [1, 3, 5, 7],
+  "name": "Turno Logística - Noite",
+  "startTime": "15:00",
+  "endTime": "23:00",
+  "lunchStartTime": "19:00",
+  "lunchEndTime": "20:00",
   "toleranceMinutes": 15,
-  "overtimeAllowed": true,
-  "description": "Turno padrão de garagista noturno dia sim dia não"
+  "overtimeAllowed": true
 }
 
 ### Criar turno vespertino
