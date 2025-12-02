@@ -4,13 +4,13 @@ import { AppError } from '../../../shared/errors/AppError';
 import { makeUploadFileUseCase } from '../factories/make-upload-file-use-case';
 import { makeProcessImportUseCase } from '../factories/make-process-import-use-case';
 import { makeGetImportDetailsUseCase } from '../factories/make-get-import-details-use-case';
-import { LocalStorageProvider } from '../../../shared/providers/StorageProvider/implementations/LocalStorageProvider';
 import { makeListImportsUseCase } from '../factories/make-list-import-use-case';
 import { PrismaImportRepository } from '../repositories/prisma/ImportRepository';
 import { prisma } from '../../../shared/lib/prisma';
+import { MemoryStorageProvider } from '../../../shared/providers/StorageProvider/implementations/MemoryStorageProvider';
 
 // Instância do Storage Provider
-const storageProvider = new LocalStorageProvider();
+const storageProvider = new MemoryStorageProvider();
 
 export class ImportController {
   
